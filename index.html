@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1565c0">
+<title>વિદ્યાર્થી ગેરહાજરી મેસેજ</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:#eef2f7;color:#1f2937;font-family:"Noto Sans Gujarati","Nirmala UI",Arial,sans-serif}
+.app{width:100%;max-width:520px;min-height:100vh;margin:auto;background:#f7f9fc}
+.header{position:sticky;top:0;z-index:10;padding:15px;background:linear-gradient(135deg,#1565c0,#1976d2);color:white;border-radius:0 0 18px 18px;box-shadow:0 3px 12px #0002}
+.title{font-size:19px;font-weight:800} .sub{font-size:11px;margin-top:4px;opacity:.92}
+.content{padding:11px} .box{background:white;border-radius:16px;padding:12px;margin-bottom:11px;box-shadow:0 2px 9px #183b5c12}
+.stitle{font-weight:800;font-size:15px;margin-bottom:9px}
+.search{width:100%;padding:11px 12px;border:1px solid #d7e0e9;border-radius:11px;font-size:14px;outline:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.student{min-width:0;min-height:68px;border:1.5px solid #dbe4ee;border-radius:13px;background:#fff;padding:8px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;touch-action:manipulation}
+.student.selected{background:#fff0f0;border-color:#e53935}
+.avatar{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:#e3f2fd;color:#1565c0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.selected .avatar{background:#e53935;color:#fff}
+.sinfo{min-width:0;overflow:hidden} .roll{font-size:10px;color:#64748b}
+.sname{font-size:12.5px;font-weight:700;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+.status{font-size:10px;color:#d32f2f;font-weight:800;margin-top:2px}
+.badge{background:#e53935;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;margin-left:4px}
+textarea{width:100%;min-height:170px;border:1px solid #d7e0e9;border-radius:12px;padding:11px;font-size:13px;line-height:1.65;resize:vertical}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+button{font-family:inherit} .btn{border:0;border-radius:11px;padding:11px 7px;font-weight:800;font-size:13px;touch-action:manipulation}
+.blue{background:#1565c0;color:#fff} .green{background:#e8f5e9;color:#1b5e20}
+.orange{background:#fff3e0;color:#e65100} .red{background:#ffebee;color:#c62828}
+.list{display:flex;flex-direction:column;gap:7px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:7px;border:1px solid #e1e8ef;border-radius:11px;padding:9px;background:#fafcff}
+.name{font-size:13px;font-weight:800} .meta{font-size:10px;color:#64748b;margin-top:2px}
+.mini{display:flex;gap:4px} .mini button{border:0;border-radius:8px;width:34px;height:32px}
+.empty{text-align:center;color:#64748b;padding:14px;font-size:13px}
+.footer{text-align:center;color:#94a3b8;font-size:10px;padding:2px 0 20px}
+@media(max-width:360px){.content{padding:8px}.grid{gap:6px}.student{padding:7px;gap:6px}.sname{font-size:11.5px}}
+@media(min-width:431px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header">
+<div class="title">📋 વિદ્યાર્થી ગેરહાજરી મેસેજ</div>
+<div class="sub">ધોરણ :- 10/ફ &nbsp; | &nbsp; વર્ગશિક્ષક : મહેન્દ્રકુમાર આર. ચૌધરી</div>
+</header>
+<main class="content">
+<section class="box">
+<div class="stitle">વિદ્યાર્થી પસંદ કરો <span id="count" class="badge">0</span></div>
+<input id="search" class="search" placeholder="🔍 નામ અથવા રોલ નંબર શોધો...">
+</section>
+
+<section class="box"><div id="grid" class="grid"></div></section>
+
+<section class="box">
+<div class="stitle">ડિફૉલ્ટ મેસેજ</div>
+<textarea id="message"></textarea>
+<div class="actions">
+<button class="btn blue" id="smsBtn">📩 SMS</button>
+<button class="btn green" id="waBtn">🟢 WhatsApp</button>
+<button class="btn green" id="classWaBtn">👥 Class WhatsApp</button>
+<button class="btn blue" id="callBtn">📞 Call</button>
+<button class="btn red" id="clearBtn">✖ બધા દૂર કરો</button>
+</div>
+</section>
+
+<section class="box">
+<div class="stitle">પસંદ કરેલા વિદ્યાર્થીઓ</div>
+<div id="selectedList" class="list"></div>
+</section>
+<div class="footer">Student Absence Message</div>
+</main>
+</div>
+
+<script>
+const students=[{"roll": "1", "name": "આર્યનકુમાર ભરતભાઈ સેનમા", "phone": "8160612032"}, {"roll": "2", "name": "આર્યન સુનિલભાઈ નાયી", "phone": "9712202621"}, {"roll": "3", "name": "ભગવતીબેન દશરથભાઈ વાદી", "phone": "9313820922"}, {"roll": "4", "name": "ભાવેશ બિપિનકુમાર પરમાર", "phone": "9574965545"}, {"roll": "5", "name": "દેવર્ષ સંદિપભાઈ પટેલ", "phone": "9714580770"}, {"roll": "6", "name": "ધ્રુમિત તુષારકુમાર પટેલ", "phone": "9979032936"}, {"roll": "7", "name": "ધ્વનિ દિનેશકુમાર પ્રજાપતિ", "phone": "8320219245"}, {"roll": "8", "name": "દિવ્યાબેન અમરતજી ઠાકોર", "phone": "6359912248"}, {"roll": "9", "name": "હેનિલ જયેન્દ્રભાઈ યાદવ", "phone": "9925040038"}, {"roll": "10", "name": "હેતાક્ષીબેન ચમનજી ઠાકોર", "phone": "9328452608"}, {"roll": "11", "name": "હિરલ રમેશભાઈ લખવારા", "phone": ""}, {"roll": "12", "name": "હિંતાંશી અલ્પેશભાઈ બારોટ", "phone": "9228203220"}, {"roll": "13", "name": "જાનકી કિરીટભાઈ વાદી", "phone": "7016401027"}, {"roll": "14", "name": "જાનકીબેન નરેન્દ્રજી ઠાકોર", "phone": "9016825706"}, {"roll": "15", "name": "જયદીપસિંહ વિષ્ણુજી ચૌહાણ", "phone": "9023322616"}, {"roll": "16", "name": "જયશ્રીબેન લાલાભાઈ સલાટ", "phone": ""}, {"roll": "17", "name": "જિગરકુમાર સેંધાભાઈ સેનમા", "phone": "7229082271"}, {"roll": "18", "name": "જુલી વિષ્ણુભાઈ રાવલ", "phone": "9327263378"}, {"roll": "19", "name": "કેતનજી બચુજી ઠાકોર", "phone": "9537139306"}, {"roll": "20", "name": "કિરણબેન વિનોદસિંહ ઠાકોર", "phone": "8156086533"}, {"roll": "21", "name": "કિશન દિનેશજી ઠાકોર", "phone": "7284050825"}, {"roll": "22", "name": "લક્ષ્યકુમાર દિનેશભાઈ ઠાકોર", "phone": "8156086533"}, {"roll": "23", "name": "મેહુલ રમેશભાઈ સલાટ", "phone": "7043499196"}, {"roll": "24", "name": "મિહિર અમરતભાઈ સેનમા", "phone": "720391945"}, {"roll": "25", "name": "નિશાબા સુરેન્દ્રસિંહ રાઠોડ", "phone": "7718998819"}, {"roll": "26", "name": "પ્રતિજ્ઞાબેન વિક્રમભાઈ રાવલ", "phone": "9979790424"}, {"roll": "27", "name": "પ્રિયાબેન ભુપતજી ઠાકોર", "phone": "9978372832"}, {"roll": "28", "name": "પુરીબેન રાજુભાઈ સલાટ", "phone": ""}, {"roll": "29", "name": "રાહુલભાઈ હેમજીભાઈ ઠાકોર", "phone": "9723829640"}, {"roll": "30", "name": "રિદાબાનુ નસીબભાઈ મન્સુરી", "phone": "9265349691"}, {"roll": "31", "name": "રિધમકુમાર વિપુલકુમાર પટેલ", "phone": "9638735430"}, {"roll": "32", "name": "મોહમ્મદસાહિલ મોહમ્મદમુસ્લિમ", "phone": "9898211780"}, {"roll": "33", "name": "સાહિલ પોપટજી ઠાકોર", "phone": "9924782072"}, {"roll": "34", "name": "સમીર અલ્કેશજી ઠાકોર", "phone": "6351883742"}, {"roll": "35", "name": "શિવાની ભાવેશકુમાર નાયી", "phone": "9898215120"}, {"roll": "36", "name": "શુભમ કિશોરભાઈ વાંજા", "phone": "8485969513"}, {"roll": "37", "name": "શ્યામ કીર્તિભાઈ દાંતણી", "phone": "8140311530"}, {"roll": "38", "name": "સ્નેહલકુમારી મહેન્દ્રભાઈ માચ્છી", "phone": "9313568526"}, {"roll": "39", "name": "સોહમ જગદીશભાઈ સેનમા", "phone": "7383810276"}, {"roll": "40", "name": "સોહમસિંહ જિતેન્દ્રસિંહ રાઠોડ", "phone": "9909180546"}, {"roll": "41", "name": "તુસાલ ચેતનભાઈ વાઘરી", "phone": "6352392172"}, {"roll": "42", "name": "તુસાલગિરી સુભાષગિરી ગોસ્વામી", "phone": "7874648214"}, {"roll": "43", "name": "ઉજાસ વિજયભાઈ સેનમા", "phone": "9328557521"}, {"roll": "44", "name": "વંશિકા રાજકમલ પરમાર", "phone": "9909599928"}, {"roll": "45", "name": "વર્ષાબેન જયસિંગભાઈ સલાટ", "phone": "9586318672"}, {"roll": "46", "name": "વેદ ધ્રુવકુમાર નાયી", "phone": "8347898196"}, {"roll": "47", "name": "વિરેનસિંહ નરેન્દ્રસિંહ ઠાકોર", "phone": "8511430890"}, {"roll": "48", "name": "વિશ્વ રાજકમલ પરમાર", "phone": "9909599928"}, {"roll": "49", "name": "વિશ્વાસ લક્ષ્મણજી ઠાકોર", "phone": "8142425219"}, {"roll": "50", "name": "યશવી કિશોરજી ઠાકોર", "phone": "9904687675"}, {"roll": "51", "name": "યુવરાજજી રોહિતજી ઠાકોર", "phone": "9316290044"}];
+let selected=[];
+const days=["રવિવાર","સોમવાર","મંગળવાર","બુધવાર","ગુરુવાર","શુક્રવાર","શનિવાર"];
+
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function phone(x){return String(x||"").replace(/\D/g,"");}
+function today(){const d=new Date();return {date:String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+d.getFullYear(),day:days[d.getDay()]};}
+function msg(s){const t=today();return `વિદ્યાર્થીનું નામ : ${s.name}
+રોલ નંબર : ${s.roll}
+તારીખ : ${t.date}
+વાર : ${t.day}
+
+આજે આપનું સંતાન શાળામાં ગેરહાજર છે. તો વર્ગશિક્ષકનો સંપર્ક કરવો. અને તેની માહિતી આપવી.
+
+ધોરણ :- 10/F
+વર્ગશિક્ષક : મહેન્દ્રકુમાર આર. ચૌધરી`;}
+function render(){ 
+ const q=document.getElementById("search").value.trim().toLowerCase();
+ const arr=students.filter(s=>String(s.roll).toLowerCase().includes(q)||s.name.toLowerCase().includes(q));
+ const grid=document.getElementById("grid");
+ grid.innerHTML="";
+ if(!arr.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">વિદ્યાર્થી મળ્યો નથી.</div>';}
+ arr.forEach(s=>{
+   const card=document.createElement("div");
+   card.className="student"+(selected.some(x=>String(x.roll)===String(s.roll))?" selected":"");
+   card.dataset.roll=s.roll;
+   card.innerHTML=`<div class="avatar">${selected.some(x=>String(x.roll)===String(s.roll))?"✓":esc(s.roll)}</div>
+   <div class="sinfo"><div class="roll">રોલ નંબર: ${esc(s.roll)}</div><div class="sname">${esc(s.name)}</div>
+   ${selected.some(x=>String(x.roll)===String(s.roll))?'<div class="status">ગેરહાજર</div>':""}</div>`;
+   grid.appendChild(card);
+ });
+ document.getElementById("count").textContent=selected.length;
+ document.getElementById("message").value=selected.length===1?msg(selected[0]):(selected.length?selected.map(msg).join("\n\n--------------------\n\n"):defaultMsg());
+ renderSelected();
+}
+function defaultMsg(){const t=today();return `વિદ્યાર્થીનું નામ : 
+રોલ નંબર : 
+તારીખ : ${t.date}
+વાર : ${t.day}
+
+આજે આપનું સંતાન શાળામાં ગેરહાજર છે. તો વર્ગશિક્ષકનો સંપર્ક કરવો. અને તેની માહિતી આપવી.
+
+ધોરણ :- 10/ફ
+વર્ગશિક્ષક : મહેન્દ્રકુમાર આર. ચૌધરી`;}
+function renderSelected(){
+ const el=document.getElementById("selectedList"); el.innerHTML="";
+ if(!selected.length){el.innerHTML='<div class="empty">કોઈ વિદ્યાર્થી પસંદ કરેલ નથી.</div>';return;}
+ selected.forEach(s=>{
+   const r=document.createElement("div"); r.className="row";
+   r.innerHTML=`<div><div class="name">${esc(s.name)} (#${esc(s.roll)})</div><div class="meta">${esc(s.phone)} • ગેરહાજર</div></div>
+   <div class="mini"><button class="blue callOne">📞</button><button class="orange smsOne">📩</button><button class="green waOne">🟢</button></div>`;
+   r.querySelector(".callOne").onclick=()=>call(s);
+   r.querySelector(".smsOne").onclick=()=>sms(s);
+   r.querySelector(".waOne").onclick=()=>wa(s);
+   el.appendChild(r);
+ });
+}
+document.getElementById("grid").addEventListener("click",e=>{
+ const card=e.target.closest(".student"); if(!card)return;
+ const s=students.find(x=>String(x.roll)===String(card.dataset.roll)); if(!s)return;
+ const i=selected.findIndex(x=>String(x.roll)===String(s.roll));
+ if(i>=0) selected.splice(i,1); else selected.push(s);
+ render();
+});
+document.getElementById("search").addEventListener("input",render);
+function call(s){const p=phone(s.phone);if(!p){alert("મોબાઇલ નંબર ઉપલબ્ધ નથી.");return;}location.href="tel:"+p;}
+function sms(s){const p=phone(s.phone);if(!p){alert("મોબાઇલ નંબર ઉપલબ્ધ નથી.");return;}location.href="sms:"+p+"?body="+encodeURIComponent(msg(s));}
+
+function classWhatsApp(){
+ const t=today();
+ if(!selected.length){
+   alert("Class WhatsApp માટે ઓછામાં ઓછો એક ગેરહાજર વિદ્યાર્થી પસંદ કરો.");
+   return;
+ }
+ const sorted=selected.slice().sort((a,b)=>Number(a.roll)-Number(b.roll));
+ const names=sorted.map(s=>`👤 ${s.roll} : ${s.name}`).join("\n");
+ const text=`📢 આજના ધોરણ 10-F ના ગેરહાજર વિદ્યાર્થીઓની માહિતી
+
+📅 તારીખ : ${t.date.replaceAll("-","/")}
+🗓️ વાર : ${t.day}
+
+${names}
+
+📊 કુલ ગેરહાજર વિદ્યાર્થીઓ : ${sorted.length}
+
+🙏 વિનંતી : ગેરહાજરીનું કારણ વાલીશ્રીએ તાત્કાલિક જણાવશો તેમજ બે કે તેથી વધુ દિવસ ગેરહાજર હોય તો શાળામાં તાત્કાલિક મળી જશો. તથા વિદ્યાર્થીઓને નિયમિત શાળાએ મોકલશો.
+
+👨‍🏫 વર્ગશિક્ષક
+મહેન્દ્રકુમાર આર. ચૌધરી
+ધોરણ : 10-F`;
+
+ if(navigator.clipboard && window.isSecureContext){
+   navigator.clipboard.writeText(text).then(()=>{
+     alert("Class WhatsApp માટે મેસેજ Copy થઈ ગયો છે. હવે WhatsApp Groupમાં Paste કરીને Send કરો.");
+     location.href="https://chat.whatsapp.com/EsvTKyKsCss5NMo4dePVFM";
+   }).catch(()=>fallbackCopy(text));
+ }else{
+   fallbackCopy(text);
+ }
+}
+function fallbackCopy(text){
+ const ta=document.createElement("textarea");
+ ta.value=text; document.body.appendChild(ta); ta.select();
+ try{
+   document.execCommand("copy");
+   alert("Class WhatsApp માટે મેસેજ Copy થઈ ગયો છે. હવે WhatsApp Groupમાં Paste કરીને Send કરો.");
+ }catch(e){
+   prompt("આ મેસેજ Copy કરો:",text);
+ }
+ document.body.removeChild(ta);
+ location.href="https://chat.whatsapp.com/EsvTKyKsCss5NMo4dePVFM";
+}
+
+function wa(s){const p=phone(s.phone); if(!p){alert("આ વિદ્યાર્થીનો મોબાઇલ નંબર ઉપલબ્ધ નથી.");return;} let n=p; if(n.length===10)n="91"+n; if(n.startsWith("0")&&n.length===11)n="91"+n.slice(1); location.href="https://wa.me/"+n+"?text="+encodeURIComponent(msg(s));}
+document.getElementById("classWaBtn").onclick=classWhatsApp;
+document.getElementById("smsBtn").onclick=()=>selected.length===1?sms(selected[0]):alert("SMS માટે એક વિદ્યાર્થી પસંદ કરો.");
+document.getElementById("waBtn").onclick=()=>selected.length===1?wa(selected[0]):alert("WhatsApp માટે એક વિદ્યાર્થી પસંદ કરો.");
+document.getElementById("callBtn").onclick=()=>selected.length===1?call(selected[0]):alert("Call માટે એક વિદ્યાર્થી પસંદ કરો.");
+document.getElementById("clearBtn").onclick=()=>{selected=[];render();};
+render();
+</script>
+</body>
+</html>
